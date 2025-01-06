@@ -14,7 +14,6 @@ struct ContentView: View {
   @State private var currentSpeedAccuracy: Double = 0.0
   @State private var isWorkoutActive: Bool = false
 
-//  private let healthStore = HKHealthStore()
   private var workoutManager = WorkoutManager()
 
   var body: some View {
@@ -22,22 +21,18 @@ struct ContentView: View {
       Text("Speed")
         .font(.headline)
 
-      if currentSpeed.isNaN {
+      if currentSpeed.isNaN || currentSpeed < 0 {
         Text("--")
       } else {
-        Text("\(currentSpeed, specifier: "%.1f") km/h")
-          .font(.largeTitle)
+        Text("\(currentSpeed, specifier: "%.1f")km/h")
+          .font(.caption)
           .bold()
           .padding()
-          .onReceive(locationManager.$speed) { speed in
-            currentSpeed = speed
-          }
       }
 
       Text("Accuracy: ")
       +
       Text("\(currentSpeedAccuracy, specifier: "%.2f")")
-      
       
       Spacer()
       
@@ -46,17 +41,21 @@ struct ContentView: View {
           .font(.headline)
           .padding()
           .frame(maxWidth: .infinity)
-          .background(isWorkoutActive ? Color.red : Color.green)
+          .background(isWorkoutActive ? .red : .green)
           .foregroundColor(.white)
           .cornerRadius(10)
       }
       .buttonStyle(BorderButtonStyle())
     }
     .padding()
+    .onReceive(locationManager.$speed) { speed in
+      currentSpeed = speed
+    }
     .onReceive(locationManager.$speedAccuracy) { newValue in
       currentSpeedAccuracy = newValue
     }
     .onAppear {
+      workoutManager.locationManager = locationManager
       workoutManager.requestAuthorization()
     }
   }
@@ -69,9 +68,8 @@ struct ContentView: View {
       workoutManager.stopWorkout()
     }
   }
-  
 }
 
 #Preview {
-    ContentView()
+  ContentView()
 }

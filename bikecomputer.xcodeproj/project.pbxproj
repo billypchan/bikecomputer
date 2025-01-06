@@ -63,6 +63,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A97B51FE2D2C840700DFFC7B /* Cycling.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Cycling.gpx; sourceTree = "<group>"; };
 		A99B17452D2B0AAC0052A9E3 /* bikecomputer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = bikecomputer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A99B17592D2B0AAF0052A9E3 /* bikecomputerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = bikecomputerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A99B17632D2B0AAF0052A9E3 /* bikecomputerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = bikecomputerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -166,6 +167,7 @@
 		A99B173C2D2B0AAC0052A9E3 = {
 			isa = PBXGroup;
 			children = (
+				A97B51FE2D2C840700DFFC7B /* Cycling.gpx */,
 				A99B17472D2B0AAC0052A9E3 /* bikecomputer */,
 				A99B175C2D2B0AAF0052A9E3 /* bikecomputerTests */,
 				A99B17662D2B0AAF0052A9E3 /* bikecomputerUITests */,
