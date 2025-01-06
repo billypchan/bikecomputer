@@ -21,7 +21,8 @@ class WorkoutManager: NSObject {
   
   func requestAuthorization() {
     let typesToShare: Set = [
-      HKObjectType.workoutType()
+      HKObjectType.workoutType(),
+      HKSeriesType.workoutRoute()
     ]
     
     let typesToRead: Set = [
@@ -31,11 +32,16 @@ class WorkoutManager: NSObject {
     
     healthStore.requestAuthorization(toShare: typesToShare, read: typesToRead) { success, error in
       if !success {
-        print("Failed to get HealthKit authorization: \(String(describing: error))")
+        if let error = error {
+          print("HealthKit authorization failed: \(error.localizedDescription)")
+        } else {
+          print("HealthKit authorization was not granted by the user.")
+        }
+      } else {
+        print("HealthKit authorization succeeded.")
       }
     }
   }
-  
   func startWorkout() {
     guard HKHealthStore.isHealthDataAvailable() else { return }
     
@@ -94,7 +100,7 @@ class WorkoutManager: NSObject {
             print("Failed to save workout route: \(error)")
           }
         }
-      } else if let error = error {
+      } else if let error {
         print("Failed to insert route data: \(error)")
       }
     }

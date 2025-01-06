@@ -6,38 +6,49 @@
 //
 
 import CoreLocation
+//import Combine
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
   private let locationManager = CLLocationManager()
+  private var previousLocation: CLLocation?
   
   @Published var speed: Double = 0.0
   @Published var speedAccuracy: Double = 0.0
+  @Published var distance: Double = 0.0 // Distance in meters
 
   var locations: [CLLocation] = [] // To store workout route data
 
   override init() {
     super.init()
     locationManager.delegate = self
-    locationManager.desiredAccuracy = kCLLocationAccuracyBest
     locationManager.requestWhenInUseAuthorization()
+  }
+  
+  func startUpdatingLocation() {
+    distance = 0.0
+    previousLocation = nil
     locationManager.startUpdatingLocation()
   }
   
-  // MARK: - CLLocationManagerDelegate
-  func locationManager(
-    _ manager: CLLocationManager,
-    didUpdateLocations locations: [CLLocation]
-  ) {
+  func stopUpdatingLocation() {
+    locationManager.stopUpdatingLocation()
+  }
+  
+  func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
     self.locations.append(contentsOf: locations)
 
     guard let location = locations.last else { return }
     
-    speed = location.speed * 3.6
+    speed = location.speed * 3.6 // Convert m/s to km/h
     speedAccuracy = location.speedAccuracy
     
-    print("speed: \(location.speed)")
-    print("speedAccuracy: \(location.speedAccuracy)")
-    print("coordinate: \(location.coordinate)")
-
+    if let previousLocation {
+      distance += location.distance(from: previousLocation) // Calculate distance in meters
+    }
+    self.previousLocation = location
+  }
+  
+  func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+    print("Location update failed: \(error)")
   }
 }
