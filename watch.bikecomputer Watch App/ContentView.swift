@@ -14,10 +14,10 @@ struct ContentView: View {
     @State private var currentSpeedAccuracy: Double = 0.0
     @State private var isWorkoutActive: Bool = false
     @State private var totalDistance: Double = 0.0
+    @State private var startTime: Date? = nil
     @State private var duration: TimeInterval = 0.0
     
     private var workoutManager = WorkoutManager()
-    private var workoutTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     private let lengthFormatter = LengthFormatter()
     
     var body: some View {
@@ -41,15 +41,11 @@ struct ContentView: View {
             
             VStack(alignment: .leading) {
                 TimelineView(.animation) { context in
-                    Text("Duration: \(formatDuration(duration))")
+                    let elapsedTime = isWorkoutActive ? Date().timeIntervalSince(startTime ?? Date()) : duration
+                    Text("Duration: \(formatDuration(elapsedTime))")
                         .font(.title3)
                         .bold()
                         .foregroundColor(.primary)
-                }
-                .onReceive(workoutTimer) { _ in
-                    if isWorkoutActive {
-                        duration += 1
-                    }
                 }
                 
                 Text("Distance: \(formattedDistance(totalDistance))")
@@ -92,12 +88,14 @@ struct ContentView: View {
         isWorkoutActive.toggle()
         if isWorkoutActive {
             workoutManager.startWorkout()
-            duration = 0.0
-            totalDistance = 0.0
+            startTime = Date() // Set start time
+            totalDistance = 0.0 // Reset distance
             locationManager.startUpdatingLocation()
         } else {
             workoutManager.stopWorkout()
+            duration = Date().timeIntervalSince(startTime ?? Date()) // Save final duration
             locationManager.stopUpdatingLocation()
+            startTime = nil // Clear start time
         }
     }
     
@@ -128,6 +126,7 @@ struct ContentView: View {
         }
     }
 }
+
 #Preview {
     ContentView()
 }
