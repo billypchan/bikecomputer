@@ -17,8 +17,13 @@ struct ContentView: View {
   @State private var startTime: Date? = nil
   @State private var duration: TimeInterval = 0.0
   
+  @State private var lastSpokenSpeed: Double = -1
+  @State private var lastSpokenTime: Date = Date()
+
   private var workoutManager = WorkoutManager()
   private let lengthFormatter = LengthFormatter()
+  private let speechService = SpeechService()
+  
   
   var body: some View {
     VStack {
@@ -29,15 +34,17 @@ struct ContentView: View {
         Text("--")
           .foregroundColor(.gray)
       } else {
-        Text("\(currentSpeed, specifier: "%.1f") km/h")
+        Text("\(currentSpeed, specifier: "%.1f")")
           .font(.title)
           .bold()
-          .padding()
+          .foregroundColor(speedColor(for: currentSpeedAccuracy))
+        + Text(" km/h")
+          .font(.callout)
           .foregroundColor(speedColor(for: currentSpeedAccuracy))
       }
       
       Divider()
-        .padding(.vertical)
+//        .padding(.vertical)
       
       VStack(alignment: .leading) {
         TimelineView(.animation) { context in
@@ -87,15 +94,19 @@ struct ContentView: View {
   private func toggleWorkout() {
     isWorkoutActive.toggle()
     if isWorkoutActive {
-      workoutManager.startWorkout()
-      startTime = Date() // Set start time
-      totalDistance = 0.0 // Reset distance
-      locationManager.startUpdatingLocation()
+      Task {
+        await workoutManager.startWorkout()
+        startTime = Date() // Set start time
+        totalDistance = 0.0 // Reset distance
+        //      locationManager.startUpdatingLocation()
+      }
     } else {
-      workoutManager.stopWorkout()
-      duration = Date().timeIntervalSince(startTime ?? Date()) // Save final duration
-      locationManager.stopUpdatingLocation()
-      startTime = nil // Clear start time
+      Task {
+        await workoutManager.stopWorkout()
+        duration = Date().timeIntervalSince(startTime ?? Date()) // Save final duration
+//        locationManager.stopUpdatingLocation()
+        startTime = nil // Clear start time
+      }
     }
   }
   
@@ -106,12 +117,38 @@ struct ContentView: View {
   
   private func speedColor(for accuracy: Double) -> Color {
     switch accuracy {
-      case ..<5:
-        return .green // High accuracy
-      case 5..<10:
-        return .orange // Medium accuracy
-      default:
+      case ..<0:
         return .red // Low accuracy
+      case 0..<3:
+        return .primary // high accuracy
+      default:
+        return .orange // medium accuracy
+    }
+  }
+  
+  private func speakSpeedIfNeeded(newSpeed: Double) {
+    let now = Date()
+    let timeInterval = now.timeIntervalSince(lastSpokenTime)
+    
+    // Only speak if:
+    // 1. At least 1 minute has passed since the last spoken speed, AND
+    // 2. The new speed differs from the last spoken speed by at least 1 km/h
+    if timeInterval >= 60 && abs(newSpeed - lastSpokenSpeed) >= 1.0 {
+      // Speak the new speed
+      var sentence = "\(Int(newSpeed))"
+      
+      switch currentSpeedAccuracy {
+        case 0..<1.5: // accurate speed
+          break
+        default:
+          sentence = "about".localized + " \(sentence)"
+      }
+      
+      sentence = "speed".localized + " \(sentence)."
+      
+      speechService.speak(sentence: sentence)
+      lastSpokenSpeed = newSpeed
+      lastSpokenTime = now
     }
   }
 }

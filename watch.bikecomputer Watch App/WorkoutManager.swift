@@ -38,68 +38,58 @@ class WorkoutManager: NSObject {
       }
     }
   }
-    
-  func startWorkout() {
+  
+  func startWorkout() async {
     guard HKHealthStore.isHealthDataAvailable() else { return }
     
     let configuration = HKWorkoutConfiguration()
-      configuration.activityType = .cycling //walking has no speed info?
+    configuration.activityType = .cycling // Cycling provides speed data
     configuration.locationType = .outdoor
     
     do {
       workoutSession = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
       builder = workoutSession?.associatedWorkoutBuilder()
       builder?.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore, workoutConfiguration: configuration)
-//      locationManager?.locations.removeAll()
+      
+      // Clear previous location data if needed
+      // locationManager?.locations.removeAll()
+      
       workoutSession?.startActivity(with: Date())
-      builder?.beginCollection(withStart: Date()) { success, error in
-        if !success {
-          print("Failed to begin workout collection: \(String(describing: error))")
-        } else {
-          print("beginCollection done")
-        }
-      }
+      try await builder?.beginCollection(at: Date())
+      
+      print("Workout session started and collection began.")
     } catch {
-      print("Failed to start workout session: \(error)")
-    }
-  }
-    
-  func stopWorkout() {
-    workoutSession?.end()
-    
-    builder?.endCollection(withEnd: Date()) { [weak self] success, error in
-      if success {
-        self?.builder?.finishWorkout { workout, error in
-          if let workout {
-            self?.saveWorkoutRoute(for: workout)
-          } else if let error = error {
-            print("Failed to finish workout: \(error)")
-          }
-        }
-      } else if let error = error {
-        print("Failed to end workout collection: \(error)")
-      }
+      print("Failed to start workout session: \(error.localizedDescription)")
     }
   }
   
-  private func saveWorkoutRoute(for workout: HKWorkout) {
+  func stopWorkout() async {
+    workoutSession?.end()
+    
+    do {
+      try await builder?.endCollection(at: Date())
+      if let workout = try await builder?.finishWorkout() {
+        await saveWorkoutRoute(for: workout)
+      }
+    } catch {
+      print("Failed to stop workout: \(error.localizedDescription)")
+    }
+  }
+  
+  private func saveWorkoutRoute(for workout: HKWorkout) async {
     guard let locations = locationManager?.locations, !locations.isEmpty else {
-      print("no locations")
+      print("No locations available to save.")
       return
     }
     
     let workoutRouteBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: nil)
     
-    workoutRouteBuilder.insertRouteData(locations) { success, error in
-      if success {
-        workoutRouteBuilder.finishRoute(with: workout, metadata: nil) { _, error in
-          if let error = error {
-            print("Failed to save workout route: \(error)")
-          }
-        }
-      } else if let error {
-        print("Failed to insert route data: \(error)")
-      }
+    do {
+      try await workoutRouteBuilder.insertRouteData(locations)
+      try await workoutRouteBuilder.finishRoute(with: workout, metadata: nil)
+      print("Workout route saved successfully.")
+    } catch {
+      print("Failed to save workout route: \(error.localizedDescription)")
     }
   }
 }
