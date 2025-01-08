@@ -46,18 +46,26 @@ struct ContentView: View {
       Divider()
 //        .padding(.vertical)
       
-      VStack(alignment: .leading) {
+      VStack(alignment: .leading, spacing: 4) {
         TimelineView(.animation) { context in
           let elapsedTime = isWorkoutActive ? Date().timeIntervalSince(startTime ?? Date()) : duration
-          Text("Duration: \(DateComponentsFormatter.formattedWorkoutDuration(seconds: elapsedTime, unitsStyle: .positional))")
-            .font(.title3)
+          Text("Duration: ")
+            .font(.callout)
+            .foregroundColor(.secondary)
+          + Text(DateComponentsFormatter.formattedWorkoutDuration(seconds: elapsedTime, unitsStyle: .positional))
+            .font(.headline)
             .bold()
             .foregroundColor(.primary)
         }
         
-        Text("Distance: \(formattedDistance(totalDistance))")
-          .font(.title3)
-          .bold()
+        VStack(alignment: .leading, spacing: 4) {
+          Text("Distance: ")
+            .font(.callout)
+            .foregroundColor(.secondary)
+          + Text(formattedDistance(totalDistance))
+            .font(.headline)
+            .bold()
+        }
       }
       .padding(.horizontal)
       
@@ -98,13 +106,13 @@ struct ContentView: View {
         await workoutManager.startWorkout()
         startTime = Date() // Set start time
         totalDistance = 0.0 // Reset distance
-        //      locationManager.startUpdatingLocation()
+              locationManager.startUpdatingLocation()
       }
     } else {
       Task {
         await workoutManager.stopWorkout()
         duration = Date().timeIntervalSince(startTime ?? Date()) // Save final duration
-//        locationManager.stopUpdatingLocation()
+        locationManager.stopUpdatingLocation()
         startTime = nil // Clear start time
       }
     }
@@ -112,6 +120,8 @@ struct ContentView: View {
   
   private func formattedDistance(_ meters: Double) -> String {
     lengthFormatter.unitStyle = .short
+    lengthFormatter.numberFormatter.maximumFractionDigits = 1
+    
     return lengthFormatter.string(fromMeters: meters)
   }
   
