@@ -8,117 +8,126 @@
 import SwiftUI
 
 struct ContentView: View {
-  @StateObject private var locationManager = LocationManager()
-  
-  @State private var currentSpeed: Double = 0.0
-  @State private var currentSpeedAccuracy: Double = 0.0
-  @State private var isWorkoutActive: Bool = false
-  @State private var totalDistance: Double = 0.0
-  @State private var duration: TimeInterval = 0.0
-  
-  private var workoutManager = WorkoutManager()
-  private var workoutTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-  
-  var body: some View {
-    VStack {
-      Text("Speed")
-        .font(.headline)
-      
-      if currentSpeed.isNaN || currentSpeed < 0 {
-        Text("--")
-      } else {
-        Text("\(currentSpeed, specifier: "%.1f") km/h")
-          .font(.caption)
-          .bold()
-          .padding()
-      }
-      
-      Text("Accuracy: \(currentSpeedAccuracy, specifier: "%.2f")")
-      
-      Divider()
-        .padding(.vertical)
-      
-      HStack {
-        VStack(alignment: .leading) {
-          Text("Duration")
-            .font(.subheadline)
-          Text("\(formatDuration(duration))")
-            .font(.title3)
-            .bold()
+    @StateObject private var locationManager = LocationManager()
+    
+    @State private var currentSpeed: Double = 0.0
+    @State private var currentSpeedAccuracy: Double = 0.0
+    @State private var isWorkoutActive: Bool = false
+    @State private var totalDistance: Double = 0.0
+    @State private var duration: TimeInterval = 0.0
+    
+    private var workoutManager = WorkoutManager()
+    private var workoutTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    private let lengthFormatter = LengthFormatter()
+    
+    var body: some View {
+        VStack {
+            Text("Speed")
+                .font(.callout)
+            
+            if currentSpeed.isNaN || currentSpeed < 0 {
+                Text("--")
+                    .foregroundColor(.gray)
+            } else {
+                Text("\(currentSpeed, specifier: "%.1f") km/h")
+                    .font(.title)
+                    .bold()
+                    .padding()
+                    .foregroundColor(speedColor(for: currentSpeedAccuracy))
+            }
+            
+            Divider()
+                .padding(.vertical)
+            
+            VStack(alignment: .leading) {
+                TimelineView(.animation) { context in
+                    Text("Duration: \(formatDuration(duration))")
+                        .font(.title3)
+                        .bold()
+                        .foregroundColor(.primary)
+                }
+                .onReceive(workoutTimer) { _ in
+                    if isWorkoutActive {
+                        duration += 1
+                    }
+                }
+                
+                Text("Distance: \(formattedDistance(totalDistance))")
+                    .font(.title3)
+                    .bold()
+            }
+            .padding(.horizontal)
+            
+            Spacer()
+            
+            Button(action: toggleWorkout) {
+                Text(isWorkoutActive ? "Stop" : "Start")
+                    .font(.headline)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(isWorkoutActive ? Color.red : Color.green)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            .buttonStyle(BorderButtonStyle())
+            .padding(.horizontal)
         }
-        
-        Spacer()
-        
-        VStack(alignment: .leading) {
-          Text("Distance")
-            .font(.subheadline)
-          Text("\(totalDistance, specifier: "%.2f") km")
-            .font(.title3)
-            .bold()
+        .padding()
+        .onReceive(locationManager.$speed) { speed in
+            currentSpeed = speed
         }
-      }
-      .padding(.horizontal)
-      
-      Spacer()
-      
-      Button(action: toggleWorkout) {
-        Text(isWorkoutActive ? "Stop" : "Start")
-          .font(.headline)
-          .padding()
-          .frame(maxWidth: .infinity)
-          .background(isWorkoutActive ? .red : .green)
-          .foregroundColor(.white)
-          .cornerRadius(10)
-      }
-      .buttonStyle(BorderButtonStyle())
-      .padding(.horizontal)
+        .onReceive(locationManager.$speedAccuracy) { newValue in
+            currentSpeedAccuracy = newValue
+        }
+        .onReceive(locationManager.$distance) { distance in
+            totalDistance = distance
+        }
+        .onAppear {
+            workoutManager.locationManager = locationManager
+            workoutManager.requestAuthorization()
+        }
     }
-    .padding()
-    .onReceive(locationManager.$speed) { speed in
-      currentSpeed = speed
+    
+    private func toggleWorkout() {
+        isWorkoutActive.toggle()
+        if isWorkoutActive {
+            workoutManager.startWorkout()
+            duration = 0.0
+            totalDistance = 0.0
+            locationManager.startUpdatingLocation()
+        } else {
+            workoutManager.stopWorkout()
+            locationManager.stopUpdatingLocation()
+        }
     }
-    .onReceive(locationManager.$speedAccuracy) { newValue in
-      currentSpeedAccuracy = newValue
+    
+    private func formatDuration(_ seconds: TimeInterval) -> String {
+        let hours = Int(seconds) / 3600
+        let minutes = (Int(seconds) % 3600) / 60
+        let seconds = Int(seconds) % 60
+        if hours > 0 {
+            return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            return String(format: "%02d:%02d", minutes, seconds)
+        }
     }
-    .onReceive(locationManager.$distance) { distance in
-      totalDistance = distance / 1000.0 // Convert meters to kilometers
+    
+    private func formattedDistance(_ meters: Double) -> String {
+        lengthFormatter.unitStyle = .short
+        return lengthFormatter.string(fromMeters: meters)
     }
-    .onReceive(workoutTimer) { _ in
-      if isWorkoutActive {
-        duration += 1
-      }
+    
+    private func speedColor(for accuracy: Double) -> Color {
+        switch accuracy {
+            case ..<5:
+                return .green // High accuracy
+            case 5..<10:
+                return .orange // Medium accuracy
+            default:
+                return .red // Low accuracy
+        }
     }
-    .onAppear {
-      workoutManager.locationManager = locationManager
-      workoutManager.requestAuthorization()
-    }
-  }
-  
-  private func toggleWorkout() {
-    isWorkoutActive.toggle()
-    if isWorkoutActive {
-      workoutManager.startWorkout()
-      duration = 0.0 // Reset duration
-      totalDistance = 0.0 // Reset distance
-      locationManager.startUpdatingLocation()
-    } else {
-      workoutManager.stopWorkout()
-      locationManager.stopUpdatingLocation()
-    }
-  }
-  
-  private func formatDuration(_ seconds: TimeInterval) -> String {
-    let hours = Int(seconds) / 3600
-    let minutes = (Int(seconds) % 3600) / 60
-    let seconds = Int(seconds) % 60
-    if hours > 0 {
-      return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
-    } else {
-      return String(format: "%02d:%02d", minutes, seconds)
-    }
-  }
 }
-
 #Preview {
-  ContentView()
+    ContentView()
 }

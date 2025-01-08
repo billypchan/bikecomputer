@@ -15,10 +15,6 @@ class WorkoutManager: NSObject {
   
   weak var locationManager: LocationManager?
   
-//  init(locationManager: LocationManager) {
-//    self.locationManager = locationManager
-//  }
-  
   func requestAuthorization() {
     let typesToShare: Set = [
       HKObjectType.workoutType(),
@@ -42,11 +38,12 @@ class WorkoutManager: NSObject {
       }
     }
   }
+    
   func startWorkout() {
     guard HKHealthStore.isHealthDataAvailable() else { return }
     
     let configuration = HKWorkoutConfiguration()
-    configuration.activityType = .walking
+      configuration.activityType = .cycling //walking has no speed info?
     configuration.locationType = .outdoor
     
     do {
