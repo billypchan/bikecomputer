@@ -15,7 +15,7 @@ class WorkoutManager: NSObject {
   
   weak var locationManager: LocationManager?
   
-  func requestAuthorization() {
+  func requestAuthorization() async throws {
     let typesToShare: Set = [
       HKObjectType.workoutType(),
       HKSeriesType.workoutRoute()
@@ -26,16 +26,11 @@ class WorkoutManager: NSObject {
       HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!
     ]
     
-    healthStore.requestAuthorization(toShare: typesToShare, read: typesToRead) { success, error in
-      if !success {
-        if let error = error {
-          print("HealthKit authorization failed: \(error.localizedDescription)")
-        } else {
-          print("HealthKit authorization was not granted by the user.")
-        }
-      } else {
-        print("HealthKit authorization succeeded.")
-      }
+    do {
+      try await healthStore.requestAuthorization(toShare: typesToShare, read: typesToRead)
+      print("HealthKit authorization succeeded.")
+    } catch {
+      throw error // Pass the error to the caller for handling
     }
   }
   
@@ -85,8 +80,9 @@ class WorkoutManager: NSObject {
     let workoutRouteBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: nil)
     
     do {
+      //FIXME: filter low accuracy locs
       try await workoutRouteBuilder.insertRouteData(locations)
-      try await workoutRouteBuilder.finishRoute(with: workout, metadata: nil)
+      try await workoutRouteBuilder.finishRoute(with: workout, metadata: nil) //FIXME: max speed
       print("Workout route saved successfully.")
     } catch {
       print("Failed to save workout route: \(error.localizedDescription)")

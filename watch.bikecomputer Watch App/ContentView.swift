@@ -95,7 +95,9 @@ struct ContentView: View {
     }
     .onAppear {
       workoutManager.locationManager = locationManager
-      workoutManager.requestAuthorization()
+      Task {
+        try await workoutManager.requestAuthorization()
+      }
     }
   }
   

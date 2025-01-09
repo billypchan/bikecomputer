@@ -27,6 +27,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
   func startUpdatingLocation() {
     distance = 0.0
     previousLocation = nil
+    locationManager.desiredAccuracy = kCLLocationAccuracyBest
     locationManager.startUpdatingLocation()
   }
   
