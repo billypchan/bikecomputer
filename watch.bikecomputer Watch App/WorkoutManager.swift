@@ -6,6 +6,7 @@
 //
 
 import HealthKit
+import CoreLocation
 
 // MARK: - WorkoutManager
 class WorkoutManager: NSObject {
@@ -14,9 +15,6 @@ class WorkoutManager: NSObject {
   private var builder: HKLiveWorkoutBuilder?
   
   weak var locationManager: LocationManager?
-  private var maxSpeed: Double = 0.0
-  private var totalSpeed: Double = 0.0
-  private var speedCount: Int = 0
   
   func requestAuthorization() async throws {
     let typesToShare: Set = [
@@ -45,10 +43,6 @@ class WorkoutManager: NSObject {
       builder = workoutSession?.associatedWorkoutBuilder()
       builder?.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore, workoutConfiguration: configuration)
       
-      // Reset speed data
-      maxSpeed = 0.0
-      totalSpeed = 0.0
-      speedCount = 0
       
       workoutSession?.startActivity(with: Date())
       try await builder?.beginCollection(at: Date())
@@ -65,28 +59,36 @@ class WorkoutManager: NSObject {
     do {
       try await builder?.endCollection(at: Date())
       if let workout = try await builder?.finishWorkout() {
-        let metadata = [
-          "MaxSpeed": maxSpeed,
-          "AvgSpeed": speedCount > 0 ? totalSpeed / Double(speedCount) : 0.0
-        ] as [String: Any]
-        await saveWorkoutRoute(for: workout, metadata: metadata)
+        await saveWorkoutRoute(for: workout)
       }
     } catch {
       print("Failed to stop workout: \(error.localizedDescription)")
     }
   }
   
-  private func saveWorkoutRoute(for workout: HKWorkout, metadata: [String: Any]) async {
+  private func saveWorkoutRoute(for workout: HKWorkout) async {
     guard let locations = locationManager?.locations, !locations.isEmpty else {
       print("No locations available to save.")
       return
     }
     
+    // Filter the raw data.
+    let filteredLocations = locations.filter { (location: CLLocation) -> Bool in
+      location.horizontalAccuracy <= 50.0
+    }
+    
+    let maxSpeed = filteredLocations.maxSpeed
+    let avgSpeed = filteredLocations.averageSpeed
+    let metadata = [
+      HKMetadataKeyMaximumSpeed: maxSpeed,
+      HKMetadataKeyAverageSpeed: avgSpeed
+    ] as [String: Any]
+
     let workoutRouteBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: nil)
     
     do {
       // Filter out low-accuracy locations if needed
-      try await workoutRouteBuilder.insertRouteData(locations)
+      try await workoutRouteBuilder.insertRouteData(filteredLocations)
       try await workoutRouteBuilder.finishRoute(with: workout, metadata: metadata)
       print("Workout route saved successfully with metadata: \(metadata)")
     } catch {
@@ -94,10 +96,18 @@ class WorkoutManager: NSObject {
     }
   }
   
-  func updateSpeed(_ speed: Double) {
-    // This function should be called whenever the speed is updated
-    maxSpeed = max(maxSpeed, speed)
-    totalSpeed += speed
-    speedCount += 1
+}
+
+extension Array where Element == CLLocation {
+  /// Finds the maximum speed in the array of locations.
+  var maxSpeed: Double {
+    self.compactMap { $0.speed >= 0 ? $0.speed : nil }.max() ?? 0.0
+  }
+  
+  /// Calculates the average speed from the array of locations.
+  var averageSpeed: Double {
+    let validSpeeds = self.compactMap { $0.speed >= 0 ? $0.speed : nil }
+    guard !validSpeeds.isEmpty else { return 0.0 }
+    return validSpeeds.reduce(0.0, +) / Double(validSpeeds.count)
   }
 }

@@ -19,6 +19,7 @@ struct ContentView: View {
   
   @State private var lastSpokenSpeed: Double = -1
   @State private var lastSpokenTime: Date = Date()
+  @State private var timer: Timer? // Reference to the Timer
 
   private var workoutManager = WorkoutManager()
   private let lengthFormatter = LengthFormatter()
@@ -35,6 +36,7 @@ struct ContentView: View {
           .foregroundColor(.gray)
       } else {
         Text("\(currentSpeed, specifier: "%.1f")")
+          .monospacedDigit()
           .font(.title)
           .bold()
           .foregroundColor(speedColor(for: currentSpeedAccuracy))
@@ -44,12 +46,12 @@ struct ContentView: View {
       }
       
       Divider()
-//        .padding(.vertical)
       
       VStack(alignment: .leading, spacing: 4) {
         TimelineView(.animation) { context in
           let elapsedTime = isWorkoutActive ? Date().timeIntervalSince(startTime ?? Date()) : duration
           Text("Duration: ")
+            .monospacedDigit()
             .font(.callout)
             .foregroundColor(.secondary)
           + Text(DateComponentsFormatter.formattedWorkoutDuration(seconds: elapsedTime, unitsStyle: .positional))
@@ -60,6 +62,7 @@ struct ContentView: View {
         
         VStack(alignment: .leading, spacing: 4) {
           Text("Distance: ")
+            .monospacedDigit()
             .font(.callout)
             .foregroundColor(.secondary)
           + Text(formattedDistance(totalDistance))
@@ -109,6 +112,7 @@ struct ContentView: View {
         startTime = Date() // Set start time
         totalDistance = 0.0 // Reset distance
               locationManager.startUpdatingLocation()
+        startMinuteTimer()
       }
     } else {
       Task {
@@ -116,13 +120,14 @@ struct ContentView: View {
         duration = Date().timeIntervalSince(startTime ?? Date()) // Save final duration
         locationManager.stopUpdatingLocation()
         startTime = nil // Clear start time
+        stopMinuteTimer()
       }
     }
   }
   
   private func formattedDistance(_ meters: Double) -> String {
     lengthFormatter.unitStyle = .short
-    lengthFormatter.numberFormatter.maximumFractionDigits = 1
+    lengthFormatter.numberFormatter.maximumFractionDigits = meters > 1000 ? 1 : 0
     
     return lengthFormatter.string(fromMeters: meters)
   }
@@ -131,14 +136,26 @@ struct ContentView: View {
     switch accuracy {
       case ..<0:
         return .red // Low accuracy
-      case 0..<3:
+      case 0..<1:
         return .primary // high accuracy
       default:
         return .orange // medium accuracy
     }
   }
   
-  private func speakSpeedIfNeeded(newSpeed: Double) {
+  private func startMinuteTimer() {
+    timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
+      speakSpeedIfNeeded()
+    }
+  }
+  
+  private func stopMinuteTimer() {
+    timer?.invalidate()
+    timer = nil // Remove the reference to the invalidated timer
+  }
+  
+  private func speakSpeedIfNeeded() {
+    let newSpeed: Double = currentSpeed
     let now = Date()
     let timeInterval = now.timeIntervalSince(lastSpokenTime)
     
