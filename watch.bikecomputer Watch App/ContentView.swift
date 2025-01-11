@@ -102,6 +102,29 @@ struct ContentView: View {
         try await workoutManager.requestAuthorization()
       }
     }
+    .task {
+      //test: strava
+      
+      var activityManager = ActivityManager()
+      activityManager.locations = [
+        CLLocation(
+          coordinate: CLLocationCoordinate2D(latitude: 52.520008, longitude: 13.404954),
+          altitude: 34.0,
+          horizontalAccuracy: 5.0,
+          verticalAccuracy: 5.0,
+          timestamp: Date()
+        ),
+        CLLocation(
+          coordinate: CLLocationCoordinate2D(latitude: 52.520180, longitude: 13.405123),
+          altitude: 36.0,
+          horizontalAccuracy: 5.0,
+          verticalAccuracy: 5.0,
+          timestamp: Date().addingTimeInterval(60)
+        )
+      ]
+      
+      await activityManager.stopActivity()
+    }
   }
   
   private func toggleWorkout() {
