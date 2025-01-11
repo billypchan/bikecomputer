@@ -73,21 +73,38 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		A99B176B2D2B0AAF0052A9E3 /* Exceptions for "bikecomputer" folder in "bikecomputer" target */ = {
+		A94BE02D2D32926000F00D36 /* Exceptions for "watch.bikecomputer Watch App" folder in "watch.bikecomputer Watch App" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				Assets.xcassets,
+				BorderButtonStyle.swift,
+				ContentView.swift,
+				DurationFormatter.swift,
+				Localize.swift,
+				LocationManager.swift,
+				"Preview Content/Preview Assets.xcassets",
+				SpeechService.swift,
+				UploadActivity/ActivityManager.swift,
+				UploadActivity/GPXGenerator.swift,
+				UploadActivity/StravaAPI.swift,
+				watch_bikecomputerApp.swift,
+				WorkoutManager.swift,
 			);
-			target = A99B17442D2B0AAC0052A9E3 /* bikecomputer */;
+			target = A99B177A2D2B0BE00052A9E3 /* watch.bikecomputer Watch App */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		A99B17472D2B0AAC0052A9E3 /* bikecomputer */ = {
+		A94BE0122D32926000F00D36 /* watch.bikecomputer Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				A99B176B2D2B0AAF0052A9E3 /* Exceptions for "bikecomputer" folder in "bikecomputer" target */,
+				A94BE02D2D32926000F00D36 /* Exceptions for "watch.bikecomputer Watch App" folder in "watch.bikecomputer Watch App" target */,
 			);
+			path = "watch.bikecomputer Watch App";
+			sourceTree = "<group>";
+		};
+		A99B17472D2B0AAC0052A9E3 /* bikecomputer */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
 			path = bikecomputer;
 			sourceTree = "<group>";
 		};
@@ -99,11 +116,6 @@
 		A99B17662D2B0AAF0052A9E3 /* bikecomputerUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = bikecomputerUITests;
-			sourceTree = "<group>";
-		};
-		A99B177C2D2B0BE00052A9E3 /* watch.bikecomputer Watch App */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "watch.bikecomputer Watch App";
 			sourceTree = "<group>";
 		};
 		A99B178D2D2B0BE30052A9E3 /* watch.bikecomputer Watch AppTests */ = {
@@ -167,11 +179,11 @@
 		A99B173C2D2B0AAC0052A9E3 = {
 			isa = PBXGroup;
 			children = (
+				A94BE0122D32926000F00D36 /* watch.bikecomputer Watch App */,
 				A97B51FE2D2C840700DFFC7B /* Cycling.gpx */,
 				A99B17472D2B0AAC0052A9E3 /* bikecomputer */,
 				A99B175C2D2B0AAF0052A9E3 /* bikecomputerTests */,
 				A99B17662D2B0AAF0052A9E3 /* bikecomputerUITests */,
-				A99B177C2D2B0BE00052A9E3 /* watch.bikecomputer Watch App */,
 				A99B178D2D2B0BE30052A9E3 /* watch.bikecomputer Watch AppTests */,
 				A99B17972D2B0BE30052A9E3 /* watch.bikecomputer Watch AppUITests */,
 				A99B17462D2B0AAC0052A9E3 /* Products */,
@@ -209,6 +221,7 @@
 				A99B179D2D2B0BE30052A9E3 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
+				A94BE0122D32926000F00D36 /* watch.bikecomputer Watch App */,
 				A99B17472D2B0AAC0052A9E3 /* bikecomputer */,
 			);
 			name = bikecomputer;
@@ -275,9 +288,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				A99B177C2D2B0BE00052A9E3 /* watch.bikecomputer Watch App */,
 			);
 			name = "watch.bikecomputer Watch App";
 			packageProductDependencies = (
