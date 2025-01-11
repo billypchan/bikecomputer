@@ -9,6 +9,8 @@
 import Foundation
 import CoreLocation
 
+
+/// ref: https://developers.strava.com/docs/uploads/
 struct GPXGenerator {
     static func generateGPX(from locations: [CLLocation], activityName: String) -> URL? {
         let gpxHeader = """

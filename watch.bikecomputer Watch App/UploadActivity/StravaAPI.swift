@@ -8,6 +8,8 @@
 
 import Foundation
 
+
+/// ref: https://www.strava.com/settings/api
 struct StravaAPI {
     static let uploadURL = URL(string: "https://www.strava.com/api/v3/uploads")!
     
