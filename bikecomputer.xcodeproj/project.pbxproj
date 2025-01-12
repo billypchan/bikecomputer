@@ -80,9 +80,14 @@
 				BorderButtonStyle.swift,
 				ContentView.swift,
 				DurationFormatter.swift,
+				FileListView.swift,
 				Localize.swift,
 				LocationManager.swift,
+				MorseCode/MorseCodeService.swift,
 				"Preview Content/Preview Assets.xcassets",
+				SettingsView.swift,
+				sound/dash.m4a,
+				sound/dot.m4a,
 				SpeechService.swift,
 				UploadActivity/ActivityManager.swift,
 				UploadActivity/GPXGenerator.swift,
@@ -92,12 +97,32 @@
 			);
 			target = A99B177A2D2B0BE00052A9E3 /* watch.bikecomputer Watch App */;
 		};
+		A95B723C2D3471FA00AECABE /* Exceptions for "watch.bikecomputer Watch App" folder in "bikecomputer" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Assets.xcassets,
+				ContentView.swift,
+				MorseCode/MorseCodeService.swift,
+				SettingsView.swift,
+				watch_bikecomputerApp.swift,
+				WorkoutManager.swift,
+			);
+			target = A99B17442D2B0AAC0052A9E3 /* bikecomputer */;
+		};
+		A95B723F2D34727900AECABE /* Exceptions for "bikecomputer" folder in "bikecomputer" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = A99B17442D2B0AAC0052A9E3 /* bikecomputer */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A94BE0122D32926000F00D36 /* watch.bikecomputer Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				A95B723C2D3471FA00AECABE /* Exceptions for "watch.bikecomputer Watch App" folder in "bikecomputer" target */,
 				A94BE02D2D32926000F00D36 /* Exceptions for "watch.bikecomputer Watch App" folder in "watch.bikecomputer Watch App" target */,
 			);
 			path = "watch.bikecomputer Watch App";
@@ -105,6 +130,9 @@
 		};
 		A99B17472D2B0AAC0052A9E3 /* bikecomputer */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A95B723F2D34727900AECABE /* Exceptions for "bikecomputer" folder in "bikecomputer" target */,
+			);
 			path = bikecomputer;
 			sourceTree = "<group>";
 		};

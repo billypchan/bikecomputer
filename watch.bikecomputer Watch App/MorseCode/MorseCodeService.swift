@@ -7,7 +7,6 @@
 
 
 import AVFoundation
-import WatchKit
 
 class MorseCodeService {
   private var audioPlayer: AVAudioPlayer?
