@@ -5,18 +5,19 @@
 //  Created by Bill, Yiu Por Chan on 06/01/2025.
 //
 
+// MARK: - WorkoutManager
+import Combine
 import HealthKit
 import CoreLocation
 
-// MARK: - WorkoutManager
-class WorkoutManager: NSObject {
+class WorkoutManager: NSObject, ObservableObject {
   private let healthStore = HKHealthStore()
   private var workoutSession: HKWorkoutSession?
   private var builder: HKLiveWorkoutBuilder?
+  private var workoutRouteBuilder: HKWorkoutRouteBuilder?
   
   weak var locationManager: LocationManager?
-  
-  private var workoutRouteBuilder: HKWorkoutRouteBuilder?
+  private var cancellables = Set<AnyCancellable>()
   
   func requestAuthorization() async throws {
     let typesToShare: Set = [
@@ -37,21 +38,20 @@ class WorkoutManager: NSObject {
     guard HKHealthStore.isHealthDataAvailable() else { return }
     
     let configuration = HKWorkoutConfiguration()
-    configuration.activityType = .cycling // Cycling provides speed data
+    configuration.activityType = .cycling
     configuration.locationType = .outdoor
     
-//    locationManager?.locations.removeAll()
     workoutRouteBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: nil)
-
     
     do {
       workoutSession = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
       builder = workoutSession?.associatedWorkoutBuilder()
       builder?.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore, workoutConfiguration: configuration)
       
-      
       workoutSession?.startActivity(with: Date())
       try await builder?.beginCollection(at: Date())
+      
+      observeLocationUpdates()
       
       print("Workout session started and collection began.")
     } catch {
@@ -72,36 +72,35 @@ class WorkoutManager: NSObject {
     }
   }
   
+  private func observeLocationUpdates() {
+    locationManager?.$updateLocations
+      .sink { [weak self] locations in
+        guard let self = self,
+              let workoutRouteBuilder = self.workoutRouteBuilder,
+              !locations.isEmpty else { return }
+        
+        let filteredLocations = locations.filter { $0.horizontalAccuracy <= 50.0 }
+        
+        Task {
+          do {
+            try await workoutRouteBuilder.insertRouteData(filteredLocations)
+            print("Inserted \(filteredLocations.count) new location(s) into workout route.")
+          } catch {
+            print("Failed to insert route data: \(error.localizedDescription)")
+          }
+        }
+      }
+      .store(in: &cancellables)
+  }
+  
   private func saveWorkoutRoute(for workout: HKWorkout) async {
-    guard let locations = locationManager?.locations, !locations.isEmpty else {
-      print("No locations available to save.")
-      return
-    }
-    
-    // Filter the raw data.
-    let filteredLocations = locations.filter { (location: CLLocation) -> Bool in
-      location.horizontalAccuracy <= 50.0
-    }
-    
-    let maxSpeed = filteredLocations.maxSpeed
-//    let avgSpeed = filteredLocations.averageSpeed
-    let metadata = [
-      HKMetadataKeyMaximumSpeed: maxSpeed,
-//      HKMetadataKeyAverageSpeed: avgSpeed
-    ] as [String: Any]
     
     do {
-      // Filter out low-accuracy locations if needed
-      try await workoutRouteBuilder?.insertRouteData(filteredLocations)
-      try await workoutRouteBuilder?.finishRoute(with: workout, metadata: metadata)
-      print("Workout route saved successfully with metadata: \(metadata)")
+      try await workoutRouteBuilder?.finishRoute(with: workout, metadata: nil)
     } catch {
       print("Failed to save workout route: \(error.localizedDescription)")
     }
-    
-    _ = GPXGenerator.generateGPX(from: filteredLocations, activityName: "Cycling \(Date().description)")
   }
-  
 }
 
 extension Array where Element == CLLocation {

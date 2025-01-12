@@ -17,7 +17,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
   @Published var distance: Double = 0.0 // Distance in meters
 
   //var locations: [CLLocation] = [] // To store workout route data
-  var updateLocations: [CLLocation] = []
+  @Published var updateLocations: [CLLocation] = []
 
   override init() {
     super.init()
