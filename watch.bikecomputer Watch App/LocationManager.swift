@@ -6,7 +6,6 @@
 //
 
 import CoreLocation
-//import Combine
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
   private let locationManager = CLLocationManager()
@@ -16,7 +15,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
   @Published var speedAccuracy: Double = 0.0
   @Published var distance: Double = 0.0 // Distance in meters
 
-  //var locations: [CLLocation] = [] // To store workout route data
   @Published var updateLocations: [CLLocation] = []
 
   override init() {

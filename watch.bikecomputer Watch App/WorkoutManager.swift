@@ -19,6 +19,9 @@ class WorkoutManager: NSObject, ObservableObject {
   weak var locationManager: LocationManager?
   private var cancellables = Set<AnyCancellable>()
   
+  private var locations: [CLLocation] = [] // To store workout route data
+
+  
   func requestAuthorization() async throws {
     let typesToShare: Set = [
       HKObjectType.workoutType(),
@@ -36,6 +39,8 @@ class WorkoutManager: NSObject, ObservableObject {
   
   func startWorkout() async {
     guard HKHealthStore.isHealthDataAvailable() else { return }
+    
+    locations.removeAll()
     
     let configuration = HKWorkoutConfiguration()
     configuration.activityType = .cycling
@@ -83,6 +88,8 @@ class WorkoutManager: NSObject, ObservableObject {
         
         Task {
           do {
+            self.locations.append(contentsOf: filteredLocations)
+            
             try await workoutRouteBuilder.insertRouteData(filteredLocations)
             print("Inserted \(filteredLocations.count) new location(s) into workout route.")
           } catch {
@@ -100,19 +107,5 @@ class WorkoutManager: NSObject, ObservableObject {
     } catch {
       print("Failed to save workout route: \(error.localizedDescription)")
     }
-  }
-}
-
-extension Array where Element == CLLocation {
-  /// Finds the maximum speed in the array of locations.
-  var maxSpeed: Double {
-    self.compactMap { $0.speed >= 0 ? $0.speed : nil }.max() ?? 0.0
-  }
-  
-  /// Calculates the average speed from the array of locations.
-  var averageSpeed: Double {
-    let validSpeeds = self.compactMap { $0.speed >= 0 ? $0.speed : nil }
-    guard !validSpeeds.isEmpty else { return 0.0 }
-    return validSpeeds.reduce(0.0, +) / Double(validSpeeds.count)
   }
 }
