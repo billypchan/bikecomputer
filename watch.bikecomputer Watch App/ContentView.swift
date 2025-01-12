@@ -21,10 +21,10 @@ struct ContentView: View {
   @State private var lastSpokenTime: Date = Date()
   @State private var timer: Timer? // Reference to the Timer
 
-  private lazy var workoutManager = WorkoutManager()
+  private let workoutManager = WorkoutManager()
   private let lengthFormatter = LengthFormatter()
-  private lazy var speechService = SpeechService()
-  private lazy var morseCodeService = MorseCodeService()
+  private let speechService = SpeechService()
+  private let morseCodeService = MorseCodeService()
   
   
   var body: some View {

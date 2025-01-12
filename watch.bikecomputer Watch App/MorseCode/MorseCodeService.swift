@@ -30,44 +30,105 @@ class MorseCodeService {
     "9": "-."
   ]
   
-//  func playSpeedAsMorseCode(speed: Double) {
-//    let morseCode = speedToMorseCode(speed: speed)
-//    playMorseCode(morseCode)
-//  }
-//  
-//  func speedToMorseCode(speed: Double) -> String {
-//    let speedString = String(format: "%.0f", speed) // Convert to 1 decimal place
-//    return speedString.compactMap { morseCodeMapping[$0] ?? ($0 == "." ? "." : nil) }.joined(separator: " ")
-//  }
-  
   func playMorseCode(for speed: Int) {
-    guard let morseCode = morseCodeMapping[String(speed).first ?? "0"] else { return }
+    let speedString = String(speed)
     
     Task {
-      for symbol in morseCode {
-        if symbol == "." {
-          playDot()
-        } else if symbol == "-" {
-          playDash()
+      for char in speedString {
+        // Convert the Character to a String for dictionary lookup
+        guard let morseCode = morseCodeMapping[char] else { continue }
+        
+        for symbol in morseCode {
+          if symbol == "." {
+            playDot()
+          } else if symbol == "-" {
+            playDash()
+          }
+          // Add a pause between symbols
+          try? await Task.sleep(nanoseconds: 200_000_000) // 200 ms pause
         }
-        // Add a pause between symbols
-        try? await Task.sleep(nanoseconds: 200_000_000) // 200 ms pause
+        
+        // Add a longer pause between characters
+        try? await Task.sleep(nanoseconds: 600_000_000) // 600 ms pause
       }
     }
   }
   
-  //    private func playBeep(duration: TimeInterval) {
-  //        let soundID: SystemSoundID = 1005 // Default beep
-  //        AudioServicesPlaySystemSoundWithCompletion(soundID) {
-  //            Thread.sleep(forTimeInterval: duration)
-  //        }
-  //    }
-  
-  private func playDot() {
-    WKInterfaceDevice.current().play(.click)
+  /// Plays the stored sound file for a dot.
+  /// sounds recorded from https://elucidation.github.io/MorsePy/
+  func playDot() {
+    guard let soundURL = Bundle.main.url(forResource: "dot", withExtension: "m4a") else {
+      print("Dot sound file not found.")
+      return
+    }
+    playSound(from: soundURL)
   }
   
-  private func playDash() {
-    WKInterfaceDevice.current().play(.success)
+  /// Plays the stored sound file for a dash.
+  func playDash() {
+    guard let soundURL = Bundle.main.url(forResource: "dash", withExtension: "m4a") else {
+      print("Dash sound file not found.")
+      return
+    }
+    playSound(from: soundURL)
+  }
+  
+  /// Helper function to play a sound file.
+  private func playSound(from url: URL) {
+    do {
+      audioPlayer = try AVAudioPlayer(contentsOf: url)
+      audioPlayer?.prepareToPlay()
+      audioPlayer?.play()
+    } catch {
+      print("Failed to play sound: \(error.localizedDescription)")
+    }
   }
 }
+
+#if DEBUG
+import SwiftUI
+
+struct MorseCodePreviewView: View {
+  private var morseCodeService = MorseCodeService()
+  
+  var body: some View {
+    VStack(spacing: 20) {
+      Button("Play 4") {
+        morseCodeService.playMorseCode(for: 4)
+      }
+      .buttonStyle(.borderedProminent)
+      .tint(.green)
+      Button("Play 25") {
+        morseCodeService.playMorseCode(for: 25)
+      }
+      .buttonStyle(.borderedProminent)
+      .tint(.green)
+      Button("Play 6") {
+        morseCodeService.playMorseCode(for: 6)
+      }
+      .buttonStyle(.borderedProminent)
+      .tint(.green)
+      Button("Play Dot") {
+        morseCodeService.playDot()
+      }
+      .buttonStyle(.borderedProminent)
+      .tint(.green)
+
+      Button("Play Dash") {
+        morseCodeService.playDash()
+      }
+      .buttonStyle(.borderedProminent)
+      .tint(.blue)
+    }
+    .padding()
+    .navigationTitle("Morse Code Preview")
+  }
+}
+
+struct MorseCodePreviewView_Previews: PreviewProvider {
+  static var previews: some View {
+    MorseCodePreviewView()
+      .previewDevice("Apple Watch Series 8 - 45mm")
+  }
+}
+#endif
