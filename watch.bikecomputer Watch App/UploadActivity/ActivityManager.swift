@@ -10,7 +10,7 @@ import CoreLocation
 
 struct ActivityManager {
   var locations: [CLLocation] = []
-  var accessToken: String =  //"YOUR_ACCESS_TOKEN"
+  var accessToken: String = "9c2a7b382962d0ca71f61c75be1f7a641d2f0c34" //"YOUR_ACCESS_TOKEN"
   
   func stopActivity() async {
     guard let gpxFileURL = GPXGenerator.generateGPX(from: locations, activityName: "My Activity") else {

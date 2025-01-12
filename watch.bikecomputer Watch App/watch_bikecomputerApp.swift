@@ -21,6 +21,11 @@ struct WatchBikeComputerApp: App {
           .tabItem {
             Label("Files", systemImage: "folder")
           }
+        
+        SettingsView()
+          .tabItem {
+            Label("Settings", systemImage: "gear")
+          }
       }
     }
   }
