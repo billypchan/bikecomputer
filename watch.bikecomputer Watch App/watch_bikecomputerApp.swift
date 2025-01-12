@@ -8,10 +8,20 @@
 import SwiftUI
 
 @main
-struct watch_bikecomputer_Watch_AppApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+struct WatchBikeComputerApp: App {
+  var body: some Scene {
+    WindowGroup {
+      TabView {
+        ContentView()
+          .tabItem {
+            Label("Workout", systemImage: "bicycle")
+          }
+        
+        FileListView()
+          .tabItem {
+            Label("Files", systemImage: "folder")
+          }
+      }
     }
+  }
 }

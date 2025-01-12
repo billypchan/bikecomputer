@@ -20,7 +20,7 @@ class WorkoutManager: NSObject, ObservableObject {
   private var cancellables = Set<AnyCancellable>()
   
   private var locations: [CLLocation] = [] // To store workout route data
-
+  private var fileName = "WorkoutLocations\(Date.now.description).json"
   
   func requestAuthorization() async throws {
     let typesToShare: Set = [
@@ -71,6 +71,7 @@ class WorkoutManager: NSObject, ObservableObject {
       try await builder?.endCollection(at: Date())
       if let workout = try await builder?.finishWorkout() {
         await saveWorkoutRoute(for: workout)
+        saveLocationsToFile()
       }
     } catch {
       print("Failed to stop workout: \(error.localizedDescription)")
@@ -101,11 +102,62 @@ class WorkoutManager: NSObject, ObservableObject {
   }
   
   private func saveWorkoutRoute(for workout: HKWorkout) async {
-    
     do {
       try await workoutRouteBuilder?.finishRoute(with: workout, metadata: nil)
+      print("Workout route saved successfully.")
     } catch {
       print("Failed to save workout route: \(error.localizedDescription)")
     }
+  }
+  
+  private func saveLocationsToFile() {
+    guard !locations.isEmpty else {
+      print("No locations to save to file.")
+      return
+    }
+    
+    do {
+      // Map CLLocation to EncodableLocation
+      let encodableLocations = locations.map { EncodableLocation(from: $0) }
+      
+      // Encode to JSON
+      let encoder = JSONEncoder()
+      encoder.outputFormatting = [.prettyPrinted, .sortedKeys] // Optional formatting
+      let jsonData = try encoder.encode(encodableLocations)
+      
+      // Get file URL
+      let fileURL = getDocumentsDirectory().appendingPathComponent(fileName)
+      
+      // Write JSON data to file
+      try jsonData.write(to: fileURL)
+      print("Locations saved as JSON to file: \(fileURL.path)")
+    } catch {
+      print("Failed to save locations to file: \(error.localizedDescription)")
+    }
+  }
+
+  private func getDocumentsDirectory() -> URL {
+    FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+  }
+}
+
+
+struct EncodableLocation: Codable {
+  let latitude: Double
+  let longitude: Double
+  let altitude: Double
+  let speed: Double
+  let timestamp: TimeInterval
+  let horizontalAccuracy: Double
+  let verticalAccuracy: Double
+  
+  init(from location: CLLocation) {
+    self.latitude = location.coordinate.latitude
+    self.longitude = location.coordinate.longitude
+    self.altitude = location.altitude
+    self.speed = location.speed
+    self.timestamp = location.timestamp.timeIntervalSince1970
+    self.horizontalAccuracy = location.horizontalAccuracy
+    self.verticalAccuracy = location.verticalAccuracy
   }
 }
