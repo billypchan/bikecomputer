@@ -9,7 +9,7 @@
 import XCTest
 import CoreLocation
 
-@testable import YourAppName
+@testable import watch_bikecomputer_Watch_App
 
 class MockStravaAPI {
     static func uploadGPX(fileURL: URL, accessToken: String, activityName: String) async throws -> URLResponse {

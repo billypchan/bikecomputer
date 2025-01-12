@@ -5,16 +5,22 @@
 //  Created by Bill, Yiu Por Chan on 06/01/2025.
 //
 
+// MARK: - WorkoutManager
+import Combine
 import HealthKit
 import CoreLocation
 
-// MARK: - WorkoutManager
-class WorkoutManager: NSObject {
+class WorkoutManager: NSObject, ObservableObject {
   private let healthStore = HKHealthStore()
   private var workoutSession: HKWorkoutSession?
   private var builder: HKLiveWorkoutBuilder?
+  private var workoutRouteBuilder: HKWorkoutRouteBuilder?
   
   weak var locationManager: LocationManager?
+  private var cancellables = Set<AnyCancellable>()
+  
+  private var locations: [CLLocation] = [] // To store workout route data
+  private var fileName = "WorkoutLocations\(Date.now.description).json"
   
   func requestAuthorization() async throws {
     let typesToShare: Set = [
@@ -34,18 +40,23 @@ class WorkoutManager: NSObject {
   func startWorkout() async {
     guard HKHealthStore.isHealthDataAvailable() else { return }
     
+    locations.removeAll()
+    
     let configuration = HKWorkoutConfiguration()
-    configuration.activityType = .cycling // Cycling provides speed data
+    configuration.activityType = .cycling
     configuration.locationType = .outdoor
+    
+    workoutRouteBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: nil)
     
     do {
       workoutSession = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
       builder = workoutSession?.associatedWorkoutBuilder()
       builder?.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore, workoutConfiguration: configuration)
       
-      
       workoutSession?.startActivity(with: Date())
       try await builder?.beginCollection(at: Date())
+      
+      observeLocationUpdates()
       
       print("Workout session started and collection began.")
     } catch {
@@ -60,54 +71,93 @@ class WorkoutManager: NSObject {
       try await builder?.endCollection(at: Date())
       if let workout = try await builder?.finishWorkout() {
         await saveWorkoutRoute(for: workout)
+        saveLocationsToFile()
       }
     } catch {
       print("Failed to stop workout: \(error.localizedDescription)")
     }
   }
   
+  private func observeLocationUpdates() {
+    locationManager?.$updateLocations
+      .sink { [weak self] locations in
+        guard let self = self,
+              let workoutRouteBuilder = self.workoutRouteBuilder,
+              !locations.isEmpty else { return }
+        
+        let filteredLocations = locations.filter { $0.horizontalAccuracy <= 50.0 }
+        
+        Task {
+          do {
+            self.locations.append(contentsOf: filteredLocations)
+            
+            try await workoutRouteBuilder.insertRouteData(filteredLocations)
+            print("Inserted \(filteredLocations.count) new location(s) into workout route.")
+          } catch {
+            print("Failed to insert route data: \(error.localizedDescription)")
+          }
+        }
+      }
+      .store(in: &cancellables)
+  }
+  
   private func saveWorkoutRoute(for workout: HKWorkout) async {
-    guard let locations = locationManager?.locations, !locations.isEmpty else {
-      print("No locations available to save.")
-      return
-    }
-    
-    // Filter the raw data.
-    let filteredLocations = locations.filter { (location: CLLocation) -> Bool in
-      location.horizontalAccuracy <= 50.0
-    }
-    
-    let maxSpeed = filteredLocations.maxSpeed
-    let avgSpeed = filteredLocations.averageSpeed
-    let metadata = [
-      HKMetadataKeyMaximumSpeed: maxSpeed,
-      HKMetadataKeyAverageSpeed: avgSpeed
-    ] as [String: Any]
-
-    let workoutRouteBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: nil)
-    
     do {
-      // Filter out low-accuracy locations if needed
-      try await workoutRouteBuilder.insertRouteData(filteredLocations)
-      try await workoutRouteBuilder.finishRoute(with: workout, metadata: metadata)
-      print("Workout route saved successfully with metadata: \(metadata)")
+      try await workoutRouteBuilder?.finishRoute(with: workout, metadata: nil)
+      print("Workout route saved successfully.")
     } catch {
       print("Failed to save workout route: \(error.localizedDescription)")
     }
   }
   
+  private func saveLocationsToFile() {
+    guard !locations.isEmpty else {
+      print("No locations to save to file.")
+      return
+    }
+    
+    do {
+      // Map CLLocation to EncodableLocation
+      let encodableLocations = locations.map { EncodableLocation(from: $0) }
+      
+      // Encode to JSON
+      let encoder = JSONEncoder()
+      encoder.outputFormatting = [.prettyPrinted, .sortedKeys] // Optional formatting
+      let jsonData = try encoder.encode(encodableLocations)
+      
+      // Get file URL
+      let fileURL = getDocumentsDirectory().appendingPathComponent(fileName)
+      
+      // Write JSON data to file
+      try jsonData.write(to: fileURL)
+      print("Locations saved as JSON to file: \(fileURL.path)")
+    } catch {
+      print("Failed to save locations to file: \(error.localizedDescription)")
+    }
+  }
+
+  private func getDocumentsDirectory() -> URL {
+    FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+  }
 }
 
-extension Array where Element == CLLocation {
-  /// Finds the maximum speed in the array of locations.
-  var maxSpeed: Double {
-    self.compactMap { $0.speed >= 0 ? $0.speed : nil }.max() ?? 0.0
-  }
+
+struct EncodableLocation: Codable {
+  let latitude: Double
+  let longitude: Double
+  let altitude: Double
+  let speed: Double
+  let timestamp: TimeInterval
+  let horizontalAccuracy: Double
+  let verticalAccuracy: Double
   
-  /// Calculates the average speed from the array of locations.
-  var averageSpeed: Double {
-    let validSpeeds = self.compactMap { $0.speed >= 0 ? $0.speed : nil }
-    guard !validSpeeds.isEmpty else { return 0.0 }
-    return validSpeeds.reduce(0.0, +) / Double(validSpeeds.count)
+  init(from location: CLLocation) {
+    self.latitude = location.coordinate.latitude
+    self.longitude = location.coordinate.longitude
+    self.altitude = location.altitude
+    self.speed = location.speed
+    self.timestamp = location.timestamp.timeIntervalSince1970
+    self.horizontalAccuracy = location.horizontalAccuracy
+    self.verticalAccuracy = location.verticalAccuracy
   }
 }

@@ -21,9 +21,10 @@ struct ContentView: View {
   @State private var lastSpokenTime: Date = Date()
   @State private var timer: Timer? // Reference to the Timer
 
-  private var workoutManager = WorkoutManager()
+  private let workoutManager = WorkoutManager()
   private let lengthFormatter = LengthFormatter()
   private let speechService = SpeechService()
+  private let morseCodeService = MorseCodeService()
   
   
   var body: some View {
@@ -108,10 +109,10 @@ struct ContentView: View {
     isWorkoutActive.toggle()
     if isWorkoutActive {
       Task {
+        locationManager.startUpdatingLocation()
         await workoutManager.startWorkout()
         startTime = Date() // Set start time
         totalDistance = 0.0 // Reset distance
-              locationManager.startUpdatingLocation()
         startMinuteTimer()
       }
     } else {
@@ -144,11 +145,13 @@ struct ContentView: View {
   }
   
   private func startMinuteTimer() {
-    timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
+    //FIXME: setting for speak interval
+    timer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
+      
       speakSpeedIfNeeded()
     }
   }
-  
+    
   private func stopMinuteTimer() {
     timer?.invalidate()
     timer = nil // Remove the reference to the invalidated timer
@@ -159,27 +162,41 @@ struct ContentView: View {
     let now = Date()
     let timeInterval = now.timeIntervalSince(lastSpokenTime)
     
-    // Only speak if:
-    // 1. At least 1 minute has passed since the last spoken speed, AND
-    // 2. The new speed differs from the last spoken speed by at least 1 km/h
-    if timeInterval >= 60 && abs(newSpeed - lastSpokenSpeed) >= 1.0 {
-      // Speak the new speed
-      var sentence = "\(Int(newSpeed))"
-      
-      switch currentSpeedAccuracy {
-        case 0..<1.5: // accurate speed
-          break
-        default:
-          sentence = "about".localized + " \(sentence)"
+    guard timeInterval >= 60 else { return }
+    
+    let useMorseCode: Bool = UserDefaults.standard.bool(forKey: "useMorseCode")
+    
+    if useMorseCode {
+      if newSpeed > 0 {
+        morseCodeService.playMorseCode(for: Int(newSpeed))
       }
+    } else {
       
-      sentence = "speed".localized + " \(sentence)."
+      // Only speak if:
+      // 1. At least 1 minute has passed since the last spoken speed, AND
+      // 2. The new speed differs from the last spoken speed by at least 1 km/h
+      var sentence: String
+      if newSpeed < 0 {
+        sentence = "no signal"
+      } else {
+        // Speak the new speed
+        sentence = "\(Int(newSpeed))"
+        
+        switch currentSpeedAccuracy {
+          case 0..<1.5: // accurate speed
+            break
+          default:
+            sentence = "about".localized + " \(sentence)"
+        }
+        sentence = "speed".localized + " \(sentence)."
+      }
       
       speechService.speak(sentence: sentence)
       lastSpokenSpeed = newSpeed
       lastSpokenTime = now
     }
   }
+  
 }
 
 #Preview {

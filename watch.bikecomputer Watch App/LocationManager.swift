@@ -6,7 +6,6 @@
 //
 
 import CoreLocation
-//import Combine
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
   private let locationManager = CLLocationManager()
@@ -16,7 +15,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
   @Published var speedAccuracy: Double = 0.0
   @Published var distance: Double = 0.0 // Distance in meters
 
-  var locations: [CLLocation] = [] // To store workout route data
+  @Published var updateLocations: [CLLocation] = []
 
   override init() {
     super.init()
@@ -36,7 +35,8 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
   }
   
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-    self.locations.append(contentsOf: locations)
+    updateLocations = locations
+//    self.locations.append(contentsOf: locations)
 
     guard let location = locations.last else { return }
     
