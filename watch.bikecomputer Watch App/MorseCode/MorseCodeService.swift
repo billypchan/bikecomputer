@@ -17,7 +17,7 @@ class MorseCodeService {
   private let pauseDuration: TimeInterval = 0.2
   private let frequency: Double = 440.0 // Frequency of the beep sound
   
-  let morseCodeMapping: [Character: String] = [
+  static let morseCodeMapping: [Character: String] = [
     "0": "-",
     "1": ".-",
     "2": "..-",
@@ -36,7 +36,7 @@ class MorseCodeService {
     Task {
       for char in speedString {
         // Convert the Character to a String for dictionary lookup
-        guard let morseCode = morseCodeMapping[char] else { continue }
+        guard let morseCode = MorseCodeService.morseCodeMapping[char] else { continue }
         
         for symbol in morseCode {
           if symbol == "." {
