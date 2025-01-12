@@ -16,6 +16,8 @@ class WorkoutManager: NSObject {
   
   weak var locationManager: LocationManager?
   
+  private var workoutRouteBuilder: HKWorkoutRouteBuilder?
+  
   func requestAuthorization() async throws {
     let typesToShare: Set = [
       HKObjectType.workoutType(),
@@ -37,6 +39,10 @@ class WorkoutManager: NSObject {
     let configuration = HKWorkoutConfiguration()
     configuration.activityType = .cycling // Cycling provides speed data
     configuration.locationType = .outdoor
+    
+//    locationManager?.locations.removeAll()
+    workoutRouteBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: nil)
+
     
     do {
       workoutSession = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
@@ -78,22 +84,22 @@ class WorkoutManager: NSObject {
     }
     
     let maxSpeed = filteredLocations.maxSpeed
-    let avgSpeed = filteredLocations.averageSpeed
+//    let avgSpeed = filteredLocations.averageSpeed
     let metadata = [
       HKMetadataKeyMaximumSpeed: maxSpeed,
-      HKMetadataKeyAverageSpeed: avgSpeed
+//      HKMetadataKeyAverageSpeed: avgSpeed
     ] as [String: Any]
-
-    let workoutRouteBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: nil)
     
     do {
       // Filter out low-accuracy locations if needed
-      try await workoutRouteBuilder.insertRouteData(filteredLocations)
-      try await workoutRouteBuilder.finishRoute(with: workout, metadata: metadata)
+      try await workoutRouteBuilder?.insertRouteData(filteredLocations)
+      try await workoutRouteBuilder?.finishRoute(with: workout, metadata: metadata)
       print("Workout route saved successfully with metadata: \(metadata)")
     } catch {
       print("Failed to save workout route: \(error.localizedDescription)")
     }
+    
+    _ = GPXGenerator.generateGPX(from: filteredLocations, activityName: "Cycling \(Date().description)")
   }
   
 }

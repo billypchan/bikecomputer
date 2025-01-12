@@ -102,29 +102,6 @@ struct ContentView: View {
         try await workoutManager.requestAuthorization()
       }
     }
-    .task {
-      //test: strava
-      
-      var activityManager = ActivityManager()
-      activityManager.locations = [
-        CLLocation(
-          coordinate: CLLocationCoordinate2D(latitude: 52.520008, longitude: 13.404954),
-          altitude: 34.0,
-          horizontalAccuracy: 5.0,
-          verticalAccuracy: 5.0,
-          timestamp: Date()
-        ),
-        CLLocation(
-          coordinate: CLLocationCoordinate2D(latitude: 52.520180, longitude: 13.405123),
-          altitude: 36.0,
-          horizontalAccuracy: 5.0,
-          verticalAccuracy: 5.0,
-          timestamp: Date().addingTimeInterval(60)
-        )
-      ]
-      
-      await activityManager.stopActivity()
-    }
   }
   
   private func toggleWorkout() {
@@ -185,18 +162,22 @@ struct ContentView: View {
     // Only speak if:
     // 1. At least 1 minute has passed since the last spoken speed, AND
     // 2. The new speed differs from the last spoken speed by at least 1 km/h
-    if timeInterval >= 60 && abs(newSpeed - lastSpokenSpeed) >= 1.0 {
-      // Speak the new speed
-      var sentence = "\(Int(newSpeed))"
-      
-      switch currentSpeedAccuracy {
-        case 0..<1.5: // accurate speed
-          break
-        default:
-          sentence = "about".localized + " \(sentence)"
+    if timeInterval >= 60 {
+      var sentence: String
+      if newSpeed < 0 {
+        sentence = "no signal"
+      } else {
+        // Speak the new speed
+        sentence = "\(Int(newSpeed))"
+        
+        switch currentSpeedAccuracy {
+          case 0..<1.5: // accurate speed
+            break
+          default:
+            sentence = "about".localized + " \(sentence)"
+        }
+        sentence = "speed".localized + " \(sentence)."
       }
-      
-      sentence = "speed".localized + " \(sentence)."
       
       speechService.speak(sentence: sentence)
       lastSpokenSpeed = newSpeed
