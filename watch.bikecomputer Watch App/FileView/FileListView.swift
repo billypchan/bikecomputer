@@ -12,8 +12,8 @@ struct FileListView: View {
   @State private var files: [FileInfo] = []
   
   var body: some View {
-    NavigationView {
-      List(files) { file in
+    List(files) { file in
+      NavigationLink(destination: LocationMapView(fileName: file.name)) {
         HStack {
           VStack(alignment: .leading) {
             Text(file.name)
@@ -25,9 +25,9 @@ struct FileListView: View {
           Spacer()
         }
       }
-      .navigationTitle("Stored Files")
-      .onAppear(perform: loadFiles)
     }
+    .navigationTitle("Stored Files")
+    .onAppear(perform: loadFiles)
   }
   
   private func loadFiles() {
@@ -38,7 +38,10 @@ struct FileListView: View {
       
       files = fileURLs.map { url in
         let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
-        return FileInfo(name: url.lastPathComponent, size: size)
+        return FileInfo(
+          name: url.lastPathComponent,
+          size: size
+        )
       }
     } catch {
       print("Failed to load files: \(error.localizedDescription)")

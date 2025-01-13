@@ -36,7 +36,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
   
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
     updateLocations = locations
-//    self.locations.append(contentsOf: locations)
 
     guard let location = locations.last else { return }
     

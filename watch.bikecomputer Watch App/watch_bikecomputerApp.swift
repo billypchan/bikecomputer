@@ -17,7 +17,9 @@ struct WatchBikeComputerApp: App {
             Label("Workout", systemImage: "bicycle")
           }
         
-        FileListView()
+        NavigationStack {
+          FileListView()
+        }
           .tabItem {
             Label("Files", systemImage: "folder")
           }

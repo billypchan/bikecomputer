@@ -89,8 +89,8 @@
          </BuildableReference>
       </BuildableProductRunnable>
       <LocationScenarioReference
-         identifier = "Berlin, Germany"
-         referenceType = "1">
+         identifier = "../../Cycling.gpx"
+         referenceType = "0">
       </LocationScenarioReference>
    </LaunchAction>
    <ProfileAction

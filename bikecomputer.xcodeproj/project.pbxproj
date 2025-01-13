@@ -80,7 +80,8 @@
 				BorderButtonStyle.swift,
 				ContentView.swift,
 				DurationFormatter.swift,
-				FileListView.swift,
+				FileView/FileListView.swift,
+				FileView/LocationMapView.swift,
 				Localize.swift,
 				LocationManager.swift,
 				MorseCode/MorseCodeService.swift,
@@ -102,6 +103,8 @@
 			membershipExceptions = (
 				Assets.xcassets,
 				ContentView.swift,
+				FileView/FileListView.swift,
+				FileView/LocationMapView.swift,
 				MorseCode/MorseCodeService.swift,
 				SettingsView.swift,
 				watch_bikecomputerApp.swift,

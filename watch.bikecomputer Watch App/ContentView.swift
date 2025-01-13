@@ -21,9 +21,9 @@ struct ContentView: View {
   @State private var lastSpokenTime: Date = Date()
   @State private var timer: Timer? // Reference to the Timer
 
-  private let workoutManager = WorkoutManager()
+  @StateObject private var workoutManager = WorkoutManager()
   private let lengthFormatter = LengthFormatter()
-  private let speechService = SpeechService()
+  @StateObject private var speechService = SpeechService()
   private let morseCodeService = MorseCodeService()
   
   
@@ -88,6 +88,16 @@ struct ContentView: View {
       .padding(.horizontal)
     }
     .padding()
+    .task {
+      workoutManager.locationManager = locationManager
+      //      Task {
+      do {
+        try await workoutManager.requestAuthorization()
+      } catch {
+        print(error)
+      }
+      //      }
+    }
     .onReceive(locationManager.$speed) { speed in
       currentSpeed = speed
     }
@@ -96,12 +106,6 @@ struct ContentView: View {
     }
     .onReceive(locationManager.$distance) { distance in
       totalDistance = distance
-    }
-    .onAppear {
-      workoutManager.locationManager = locationManager
-      Task {
-        try await workoutManager.requestAuthorization()
-      }
     }
   }
   
