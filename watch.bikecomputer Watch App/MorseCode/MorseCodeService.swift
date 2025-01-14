@@ -8,13 +8,15 @@
 
 import AVFoundation
 
+import AVFoundation
+
 class MorseCodeService {
-  private var audioPlayer: AVAudioPlayer?
+  private var dotPlayer: AVAudioPlayer?
+  private var dashPlayer: AVAudioPlayer?
   
   private let dotDuration: TimeInterval = 0.1
   private let dashDuration: TimeInterval = 0.3
   private let pauseDuration: TimeInterval = 0.2
-  private let frequency: Double = 440.0 // Frequency of the beep sound
   
   static let morseCodeMapping: [Character: String] = [
     "0": "-",
@@ -29,12 +31,32 @@ class MorseCodeService {
     "9": "-."
   ]
   
+  init() {
+    loadSoundFiles()
+  }
+  
+  /// Preloads the sound files into audio players for reuse.
+  private func loadSoundFiles() {
+    if let dotURL = Bundle.main.url(forResource: "dot", withExtension: "m4a") {
+      dotPlayer = try? AVAudioPlayer(contentsOf: dotURL)
+      dotPlayer?.prepareToPlay()
+    } else {
+      print("Dot sound file not found.")
+    }
+    
+    if let dashURL = Bundle.main.url(forResource: "dash", withExtension: "m4a") {
+      dashPlayer = try? AVAudioPlayer(contentsOf: dashURL)
+      dashPlayer?.prepareToPlay()
+    } else {
+      print("Dash sound file not found.")
+    }
+  }
+  
   func playMorseCode(for speed: Int) {
     let speedString = String(speed)
     
     Task {
       for char in speedString {
-        // Convert the Character to a String for dictionary lookup
         guard let morseCode = MorseCodeService.morseCodeMapping[char] else { continue }
         
         for symbol in morseCode {
@@ -53,34 +75,16 @@ class MorseCodeService {
     }
   }
   
-  /// Plays the stored sound file for a dot.
-  /// sounds recorded from https://elucidation.github.io/MorsePy/
+  /// Plays the preloaded sound for a dot.
   func playDot() {
-    guard let soundURL = Bundle.main.url(forResource: "dot", withExtension: "m4a") else {
-      print("Dot sound file not found.")
-      return
-    }
-    playSound(from: soundURL)
+    dotPlayer?.currentTime = 0 // Reset to the beginning
+    dotPlayer?.play()
   }
   
-  /// Plays the stored sound file for a dash.
+  /// Plays the preloaded sound for a dash.
   func playDash() {
-    guard let soundURL = Bundle.main.url(forResource: "dash", withExtension: "m4a") else {
-      print("Dash sound file not found.")
-      return
-    }
-    playSound(from: soundURL)
-  }
-  
-  /// Helper function to play a sound file.
-  private func playSound(from url: URL) {
-    do {
-      audioPlayer = try AVAudioPlayer(contentsOf: url)
-      audioPlayer?.prepareToPlay()
-      audioPlayer?.play()
-    } catch {
-      print("Failed to play sound: \(error.localizedDescription)")
-    }
+    dashPlayer?.currentTime = 0 // Reset to the beginning
+    dashPlayer?.play()
   }
 }
 
@@ -112,7 +116,7 @@ struct MorseCodePreviewView: View {
       }
       .buttonStyle(.borderedProminent)
       .tint(.green)
-
+      
       Button("Play Dash") {
         morseCodeService.playDash()
       }
