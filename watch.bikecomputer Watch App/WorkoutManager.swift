@@ -9,6 +9,7 @@
 import Combine
 import HealthKit
 import CoreLocation
+import CLLocationWrapper
 
 class WorkoutManager: NSObject, ObservableObject {
   private let healthStore = HKHealthStore()
@@ -20,7 +21,7 @@ class WorkoutManager: NSObject, ObservableObject {
   private var cancellables = Set<AnyCancellable>()
   
   private var locations: [CLLocation] = [] // To store workout route data
-  private var fileName = "WorkoutLocations\(Date.now.description).json"
+  private var fileName = "CLLocations_\(Date.now.description).json"
   
   func requestAuthorization() async throws {
     let typesToShare: Set = [
@@ -118,12 +119,11 @@ class WorkoutManager: NSObject, ObservableObject {
     
     do {
       // Map CLLocation to EncodableLocation
-      let encodableLocations = locations.map { EncodableLocation(from: $0) }
       
       // Encode to JSON
       let encoder = JSONEncoder()
       encoder.outputFormatting = [.prettyPrinted, .sortedKeys] // Optional formatting
-      let jsonData = try encoder.encode(encodableLocations)
+      let jsonData = try encoder.encode(locations)
       
       // Get file URL
       let fileURL = getDocumentsDirectory().appendingPathComponent(fileName)
@@ -141,23 +141,3 @@ class WorkoutManager: NSObject, ObservableObject {
   }
 }
 
-
-struct EncodableLocation: Codable {
-  let latitude: Double
-  let longitude: Double
-  let altitude: Double
-  let speed: Double
-  let timestamp: TimeInterval
-  let horizontalAccuracy: Double
-  let verticalAccuracy: Double
-  
-  init(from location: CLLocation) {
-    self.latitude = location.coordinate.latitude
-    self.longitude = location.coordinate.longitude
-    self.altitude = location.altitude
-    self.speed = location.speed
-    self.timestamp = location.timestamp.timeIntervalSince1970
-    self.horizontalAccuracy = location.horizontalAccuracy
-    self.verticalAccuracy = location.verticalAccuracy
-  }
-}

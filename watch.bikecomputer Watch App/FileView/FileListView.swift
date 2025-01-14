@@ -36,13 +36,15 @@ struct FileListView: View {
       let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
       let fileURLs = try fileManager.contentsOfDirectory(at: documentsURL, includingPropertiesForKeys: [.fileSizeKey], options: .skipsHiddenFiles)
       
-      files = fileURLs.map { url in
-        let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
-        return FileInfo(
-          name: url.lastPathComponent,
-          size: size
-        )
-      }
+      files = fileURLs
+        .map { url in
+          let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+          return FileInfo(
+            name: url.lastPathComponent,
+            size: size
+          )
+        }
+        .sorted { $0.name > $1.name } // Sort by name descending
     } catch {
       print("Failed to load files: \(error.localizedDescription)")
     }

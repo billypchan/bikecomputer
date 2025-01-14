@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A97734512D36CB270095CAA0 /* CLLocationWrapper in Frameworks */ = {isa = PBXBuildFile; productRef = A97734502D36CB270095CAA0 /* CLLocationWrapper */; };
 		A99B179E2D2B0BE30052A9E3 /* watch.bikecomputer Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = A99B177B2D2B0BE00052A9E3 /* watch.bikecomputer Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -193,6 +194,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A97734512D36CB270095CAA0 /* CLLocationWrapper in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -328,6 +330,7 @@
 			);
 			name = "watch.bikecomputer Watch App";
 			packageProductDependencies = (
+				A97734502D36CB270095CAA0 /* CLLocationWrapper */,
 			);
 			productName = "watch.bikecomputer Watch App";
 			productReference = A99B177B2D2B0BE00052A9E3 /* watch.bikecomputer Watch App.app */;
@@ -422,6 +425,9 @@
 			);
 			mainGroup = A99B173C2D2B0AAC0052A9E3;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A977344F2D36CB270095CAA0 /* XCRemoteSwiftPackageReference "CLLocation-Codable" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A99B17462D2B0AAC0052A9E3 /* Products */;
 			projectDirPath = "";
@@ -1058,6 +1064,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A977344F2D36CB270095CAA0 /* XCRemoteSwiftPackageReference "CLLocation-Codable" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/visskiss/CLLocation-Codable";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A97734502D36CB270095CAA0 /* CLLocationWrapper */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A977344F2D36CB270095CAA0 /* XCRemoteSwiftPackageReference "CLLocation-Codable" */;
+			productName = CLLocationWrapper;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A99B173D2D2B0AAC0052A9E3 /* Project object */;
 }

@@ -1,0 +1,15 @@
+{
+  "originHash" : "3650400eefb39ccbccd6229c061218c717cd9d38e047d7d72645b0f6ea3916ce",
+  "pins" : [
+    {
+      "identity" : "cllocation-codable",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/visskiss/CLLocation-Codable",
+      "state" : {
+        "branch" : "master",
+        "revision" : "9d46840fda997fb3229be5cbdf623bdcff1f57b0"
+      }
+    }
+  ],
+  "version" : 3
+}

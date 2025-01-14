@@ -12,6 +12,7 @@ struct ContentView: View {
   
   @State private var currentSpeed: Double = 0.0
   @State private var currentSpeedAccuracy: Double = 0.0
+  
   @State private var isWorkoutActive: Bool = false
   @State private var totalDistance: Double = 0.0
   @State private var startTime: Date? = nil
@@ -118,6 +119,8 @@ struct ContentView: View {
         startTime = Date() // Set start time
         totalDistance = 0.0 // Reset distance
         startMinuteTimer()
+        currentSpeed = -1
+        currentSpeedAccuracy = -1
       }
     } else {
       Task {
