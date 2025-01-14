@@ -36,15 +36,16 @@ class MorseCodeService {
   }
   
   /// Preloads the sound files into audio players for reuse.
+  /// file from https://www.wavtones.com/functiongenerator.php
   private func loadSoundFiles() {
-    if let dotURL = Bundle.main.url(forResource: "dot", withExtension: "m4a") {
+    if let dotURL = Bundle.main.url(forResource: "wavTones.com.unregistred.sin_1000Hz_-6dBFS_0.1s", withExtension: "wav") {
       dotPlayer = try? AVAudioPlayer(contentsOf: dotURL)
       dotPlayer?.prepareToPlay()
     } else {
       print("Dot sound file not found.")
     }
     
-    if let dashURL = Bundle.main.url(forResource: "dash", withExtension: "m4a") {
+    if let dashURL = Bundle.main.url(forResource: "wavTones.com.unregistred.sin_1000Hz_-6dBFS_0.25s", withExtension: "wav") {
       dashPlayer = try? AVAudioPlayer(contentsOf: dashURL)
       dashPlayer?.prepareToPlay()
     } else {
@@ -66,11 +67,11 @@ class MorseCodeService {
             playDash()
           }
           // Add a pause between symbols
-          try? await Task.sleep(nanoseconds: 200_000_000) // 200 ms pause
+          try? await Task.sleep(nanoseconds: 300_000_000)
         }
         
         // Add a longer pause between characters
-        try? await Task.sleep(nanoseconds: 600_000_000) // 600 ms pause
+        try? await Task.sleep(nanoseconds: 800_000_000)
       }
     }
   }
@@ -95,36 +96,38 @@ struct MorseCodePreviewView: View {
   private var morseCodeService = MorseCodeService()
   
   var body: some View {
-    VStack(spacing: 20) {
-      Button("Play 4") {
-        morseCodeService.playMorseCode(for: 4)
+    ScrollView {
+      VStack(spacing: 20) {
+        Button("Play 4") {
+          morseCodeService.playMorseCode(for: 4)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(.green)
+        Button("Play 25") {
+          morseCodeService.playMorseCode(for: 25)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(.green)
+        Button("Play 6") {
+          morseCodeService.playMorseCode(for: 6)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(.green)
+        Button("Play Dot") {
+          morseCodeService.playDot()
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(.green)
+        
+        Button("Play Dash") {
+          morseCodeService.playDash()
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(.blue)
       }
-      .buttonStyle(.borderedProminent)
-      .tint(.green)
-      Button("Play 25") {
-        morseCodeService.playMorseCode(for: 25)
-      }
-      .buttonStyle(.borderedProminent)
-      .tint(.green)
-      Button("Play 6") {
-        morseCodeService.playMorseCode(for: 6)
-      }
-      .buttonStyle(.borderedProminent)
-      .tint(.green)
-      Button("Play Dot") {
-        morseCodeService.playDot()
-      }
-      .buttonStyle(.borderedProminent)
-      .tint(.green)
-      
-      Button("Play Dash") {
-        morseCodeService.playDash()
-      }
-      .buttonStyle(.borderedProminent)
-      .tint(.blue)
+      .padding()
+      .navigationTitle("Morse Code Preview")
     }
-    .padding()
-    .navigationTitle("Morse Code Preview")
   }
 }
 
