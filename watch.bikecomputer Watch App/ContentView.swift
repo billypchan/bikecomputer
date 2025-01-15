@@ -152,8 +152,14 @@ struct ContentView: View {
   }
   
   private func startMinuteTimer() {
+      var speakInterval: Int = UserDefaults.standard.integer(forKey: "speakInterval")
+      
+      if speakInterval == 0 {
+          speakInterval = 60
+      }
+
     //FIXME: setting for speak interval
-    timer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
+      timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(speakInterval), repeats: true) { _ in
       
       speakSpeedIfNeeded()
     }
