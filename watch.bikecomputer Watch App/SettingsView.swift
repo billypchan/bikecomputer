@@ -38,25 +38,6 @@ struct SettingsView: View {
   }
 }
 
-struct MorseCodeTableView: View {
-  let morseCodeMapping: [Character: String]
-  
-  var body: some View {
-    Section(header: Text("Morse Code Table")) {
-      ForEach(morseCodeMapping.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
-        HStack {
-          Text(String(key))
-            .fontWeight(.bold)
-          Spacer()
-          Text(value)
-            .font(.system(.body, design: .monospaced))
-            .foregroundColor(.secondary)
-        }
-      }
-    }
-  }
-}
-
 struct SettingsView_Previews: PreviewProvider {
   static var previews: some View {
     SettingsView()

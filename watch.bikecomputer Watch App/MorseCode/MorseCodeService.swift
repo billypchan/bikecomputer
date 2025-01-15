@@ -38,7 +38,7 @@ class MorseCodeService {
   /// Preloads the sound files into audio players for reuse.
   /// file from https://www.wavtones.com/functiongenerator.php
   private func loadSoundFiles() {
-    if let dotURL = Bundle.main.url(forResource: "wavTones.com.unregistred.sin_1000Hz_-6dBFS_0.1s", withExtension: "wav") {
+    if let dotURL = Bundle.main.url(forResource: "wavTones.com.unregistred.sin_1000Hz_-6dBFS_0.05s", withExtension: "wav") {
       dotPlayer = try? AVAudioPlayer(contentsOf: dotURL)
       dotPlayer?.prepareToPlay()
     } else {
